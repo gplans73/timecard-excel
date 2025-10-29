@@ -1,0 +1,432 @@
+package main
+
+import (
+	"bytes"
+	"embed"
+	"encoding/json"
+	"log"
+	"net/http"
+	"time"
+
+	"github.com/xuri/excelize/v2"
+)
+
+// Embed the Excel template that sits next to this file.
+// Make sure the filename is exactly: template.xlsx
+//go:embed template.xlsx
+var templateFS embed.FS
+
+// ---- Request types ----
+type Row struct {
+	Date    string  `json:"date"`   // "YYYY-MM-DD"
+	Project string  `json:"project"`
+	Hours   float64 `json:"hours"`
+	Type    string  `json:"type"`   // e.g. "Regular", "OT", "DT"
+	Notes   string  `json:"notes"`
+}
+
+type Request struct {
+	EmployeeName string  `json:"employeeName"`
+	WeekNumber   int     `json:"weekNumber"` // 1 -> "Week 1", 2 -> "Week 2"
+	Rows         []Row   `json:"rows"`
+	TotalOC      float64 `json:"totalOC"`    // optional (named range "OC")
+	TotalOT      float64 `json:"totalOT"`    // optional (named range "OT")
+}
+
+// ---- CELL MAP (adjust to your sheet if needed) ----
+const (
+	startRow     = 6    // first row of entries
+	cellEmployee = "J2" // top-left cell of the Employee underline (update if different)
+)
+
+var colMap = struct {
+	Date, Project, Hours, Type, Notes string
+}{
+	Date:   "A", // Date column
+	Project:"B", // Client/Project column
+	Hours:  "C", // Hours column (change if your Hours column differs)
+	Type:   "F", // "Regular"/"OT" column
+	Notes:  "G", // "Deploy"/"Meetings" column
+}
+
+// tiny helper to avoid importing strconv
+func itoa(i int) string {
+	if i == 0 {
+		return "0"
+	}
+	sign := ""
+	if i < 0 {
+		sign = "-"
+		i = -i
+	}
+	var d [20]byte
+	pos := len(d)
+	for i > 0 {
+		pos--
+		d[pos] = byte('0' + i%10)
+		i /= 10
+	}
+	return sign + string(d[pos:])
+}
+
+// ---- HTTP handler ----
+func makeHandler(w http.ResponseWriter, r *http.Request) {
+	// CORS for local testing
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	if r.Method == http.MethodOptions {
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+	if r.Method != http.MethodPost {
+		http.Error(w, "POST /excel only", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req Request
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "bad json: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Choose sheet
+	sheet := "Week 1"
+	if req.WeekNumber == 2 {
+		sheet = "Week 2"
+	}
+
+	// Open embedded template
+	tmpl, err := templateFS.ReadFile("template.xlsx")
+	if err != nil {
+		http.Error(w, "template read: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	f, err := excelize.OpenReader(bytes.NewReader(tmpl))
+	if err != nil {
+		http.Error(w, "open template: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer f.Close()
+
+	// Header fields
+	if err := f.SetCellValue(sheet, cellEmployee, req.EmployeeName); err != nil {
+		http.Error(w, "set employee: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Detail rows
+	rowIdx := startRow
+	for _, rr := range req.Rows {
+		// Write a real date type if parseable; otherwise write the string
+		if t, e := time.Parse("2006-01-02", rr.Date); e == nil {
+			_ = f.SetCellValue(sheet, colMap.Date+itoa(rowIdx), t)
+		} else {
+			_ = f.SetCellValue(sheet, colMap.Date+itoa(rowIdx), rr.Date)
+		}
+		_ = f.SetCellValue(sheet, colMap.Project+itoa(rowIdx), rr.Project)
+		_ = f.SetCellValue(sheet, colMap.Hours+itoa(rowIdx), rr.Hours)
+		_ = f.SetCellValue(sheet, colMap.Type+itoa(rowIdx), rr.Type)
+		_ = f.SetCellValue(sheet, colMap.Notes+itoa(rowIdx), rr.Notes)
+		rowIdx++
+	}
+
+	// Optional named ranges present in your workbook
+if req.TotalOC != 0 {
+    _ = f.SetCellValue(sheet, "OC", req.TotalOC)
+}
+if req.TotalOT != 0 {
+    _ = f.SetCellValue(sheet, "OT", req.TotalOT)
+}
+
+// Stream as .xlsx
+buf, err := f.WriteToBuffer()
+if err != nil {
+    http.Error(w, "write xlsx: "+err.Error(), http.StatusInternalServerError)
+    return
+}
+w.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+w.Header().Set("Content-Disposition", `attachment; filename="Timecard.xlsx"`)
+_, _ = w.Write(buf.Bytes())
+}
+
+func main() {
+    http.HandleFunc("/excel", makeHandler)
+    log.Println("listening on :8080")
+    log.Fatal(http.ListenAndServe(":8080", nil))
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+package main
+
+import (
+	"bytes"
+	"embed"
+	"encoding/json"
+	"log"
+	"net/http"
+	"time"
+
+	"github.com/xuri/excelize/v2"
+)
+
+//go:embed template.xlsx
+var templateFS embed.FS
+
+type Row struct {
+	Date    string  `json:"date"`
+	Project string  `json:"project"`
+	Hours   float64 `json:"hours"`
+	Type    string  `json:"type"`
+	Notes   string  `json:"notes"`
+}
+
+type Request struct {
+	EmployeeName string  `json:"employeeName"`
+	WeekNumber   int     `json:"weekNumber"` // 1 -> "Week 1", 2 -> "Week 2"
+	Rows         []Row   `json:"rows"`
+	TotalOC      float64 `json:"totalOC"`
+	TotalOT      float64 `json:"totalOT"`
+}
+
+// --- CELL MAP (adjust to your sheet) ---
+const startRow = 6       // first row where entries begin
+const cellEmployee = "B2" // Employee name cell
+
+var colMap = struct {
+	Date, Project, Hours, Type, Notes string
+}{
+	Date:   "A",
+	Project:"B",
+	Hours:  "C", // change if Hours is elsewhere
+	Type:   "F",
+	Notes:  "G",
+}
+
+// tiny helper (avoids importing strconv)
+func itoa(i int) string {
+	if i == 0 {
+		return "0"
+	}
+	sign := ""
+	if i < 0 {
+		sign = "-"
+		i = -i
+	}
+	var d [20]byte
+	pos := len(d)
+	for i > 0 {
+		pos--
+		d[pos] = byte('0' + i%10)
+		i /= 10
+	}
+	return sign + string(d[pos:])
+}
+
+func makeHandler(w http.ResponseWriter, r *http.Request) {
+	// CORS for quick local testing
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	if r.Method == http.MethodOptions {
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+	if r.Method != http.MethodPost {
+		http.Error(w, "POST /excel only", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req Request
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "bad json: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	sheet := "Week 1"
+	if req.WeekNumber == 2 {
+		sheet = "Week 2"
+	}
+
+	// open embedded template
+	tmpl, err := templateFS.ReadFile("template.xlsx")
+	if err != nil {
+		http.Error(w, "template read: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	f, err := excelize.OpenReader(bytes.NewReader(tmpl))
+	if err != nil {
+		http.Error(w, "open template: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer f.Close()
+
+	// header fields
+	if err := f.SetCellValue(sheet, cellEmployee, req.EmployeeName); err != nil {
+		http.Error(w, "set employee: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// detail rows
+	rowIdx := startRow
+	for _, rr := range req.Rows {
+		// normalize date string if possible
+		d := rr.Date
+		if t, e := time.Parse("2006-01-02", rr.Date); e == nil {
+			d = t.Format("2006-01-02")
+		}
+		_ = f.SetCellValue(sheet, colMap.Date+itoa(rowIdx), d)
+		_ = f.SetCellValue(sheet, colMap.Project+itoa(rowIdx), rr.Project)
+		_ = f.SetCellValue(sheet, colMap.Hours+itoa(rowIdx), rr.Hours)
+		_ = f.SetCellValue(sheet, colMap.Type+itoa(rowIdx), rr.Type)
+		_ = f.SetCellValue(sheet, colMap.Notes+itoa(rowIdx), rr.Notes)
+		rowIdx++
+	}
+
+	// optional named ranges (present in your file)
+	if req.TotalOC != 0 {
+		_ = f.SetCellValue(sheet, "OC", req.TotalOC)
+	}
+	if req.TotalOT != 0 {
+		_ = f.SetCellValue(sheet, "OT", req.TotalOT)
+	}
+
+	// stream as .xlsx
+	buf, err := f.WriteToBuffer()
+	if err != nil {
+		http.Error(w, "write xlsx: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+	w.Header().Set("Content-Disposition", `attachment; filename="Timecard.xlsx"`)
+	_, _ = w.Write(buf.Bytes())
+}
+
+func main() {
+	http.HandleFunc("/excel", makeHandler)
+	log.Println("listening on :8080")
+	log.Fatal(http.ListenAndServe(":8080", nil))
+}
