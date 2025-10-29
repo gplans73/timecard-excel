@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"time"
+        "fmt"
 
 	"github.com/xuri/excelize/v2"
 )
@@ -226,9 +227,13 @@ func makeHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "write xlsx: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	w.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-	w.Header().Set("Content-Disposition", `attachment; filename="Timecard.xlsx"`)
-	_, _ = w.Write(buf.Bytes())
+w.Header().Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+w.Header().Set("Content-Disposition", `attachment; filename="Timecard.xlsx"`)
+w.Header().Set("Content-Length", fmt.Sprintf("%d", len(buf.Bytes())))
+w.WriteHeader(http.StatusOK)
+if _, err := w.Write(buf.Bytes()); err != nil {
+    log.Println("write error:", err)
+
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
