@@ -1,0 +1,13 @@
+# macOS
+.DS_Store
+
+# Go build artifacts
+bin/
+build/
+*.exe
+*.dll
+*.so
+
+# Excel temp files
+~$*.xlsx
+*.tmp.xlsx
