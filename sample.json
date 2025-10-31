@@ -1,0 +1,11 @@
+{
+  "employeeName": "Kai",
+  "weekNumber": 1,
+  "rows": [
+    {"date":"2025-10-27","project":"Client A","hours":8.0,"type":"Regular","notes":""},
+    {"date":"2025-10-27","project":"Client A","hours":2.0,"type":"OT","notes":"Deploy"},
+    {"date":"2025-10-28","project":"Client B","hours":7.5,"type":"Regular","notes":"Meetings"}
+  ],
+  "totalOC": 0,
+  "totalOT": 2
+}

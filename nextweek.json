@@ -1,0 +1,15 @@
+{
+  "employeeName": "Kai",
+  "weekNumber": 1,
+  "rows": [
+    { "date": "2025-11-02", "project": "", "hours": 0, "type": "", "notes": "" },
+    { "date": "2025-11-03", "project": "", "hours": 0, "type": "", "notes": "" },
+    { "date": "2025-11-04", "project": "", "hours": 0, "type": "", "notes": "" },
+    { "date": "2025-11-05", "project": "", "hours": 0, "type": "", "notes": "" },
+    { "date": "2025-11-06", "project": "", "hours": 0, "type": "", "notes": "" },
+    { "date": "2025-11-07", "project": "", "hours": 0, "type": "", "notes": "" },
+    { "date": "2025-11-08", "project": "", "hours": 0, "type": "", "notes": "" }
+  ],
+  "totalOC": 0,
+  "totalOT": 0
+}
